@@ -6,3 +6,6 @@ The issue with the script provided there was that the .NET client/PowerShell set
 
 # Requirements
 You need a Host Group and a user/role with enough rights on this Host Group to add hosts to it. For determining the JSON-configuration-data-string I used the opsview_rest command on the opsview master.
+
+# Miscellaneous
+- Bypass Powershell Execution Policy and execute script like - *powershell.exe -noprofile -executionpolicy bypass -file C:\Temp\opsview-add-host.ps1* 
