@@ -15,14 +15,17 @@
 #           -user (Opsview username)                          | default: autoadduser
 #           -pass (Opsview password)                          | default: password
 #           -hostname (name of host object in Opsview)        | default: FQDN from DNS resolution via .Net class
-#           -hostip (IP address)                              | deafult: auto-detect via ipconfig
+#           -hostip (IP address)                              | default: auto-detect via ipconfig
+#           -hostgroup (Opsview hostgroup)                    | default: AutoAdd
 #
 #           Example/Syntax:
-#           .\opsview-add-host.ps1 -server monitoring.steag.de -user autoadduser -pass 0psv13w! -hostname s01ts01.steag.de -hostip 10.74.27.192
+#           .\opsview-add-host.ps1 -server monitoring.steag.de -user autoadduser -pass 0psv13w! -hostname s01ts01.steag.de -hostip 10.74.27.192 -hostgroup AutoAdd
 #           "powershell.exe -noprofile -executionpolicy bypass -file C:\Temp\opsview-add-host.ps1"
 #
 #		
 # CHANGELOG:
+# 1.1  2016-12-03 - hostgroup parameter added
+#                 - hostdata more generalized
 # 1.0  2016-11-29 - initial version
 #
 #################################################################################
@@ -48,7 +51,8 @@ param (
     [string]$user = "autoadduser",
     [string]$pass = "password",
     [string]$hostname = [System.Net.Dns]::GetHostEntry([string]$env:computername).HostName,
-    [string]$hostip = ((ipconfig | findstr [0-9].\.)[0]).Split()[-1]
+    [string]$hostip = ((ipconfig | findstr [0-9].\.)[0]).Split()[-1],
+    [string]$hostgroup = "AutoAdd"
 )
 
 ### URLs for authentication and config
@@ -84,10 +88,10 @@ Write-Host $osversion
 ### JSON format hostdata like hosttemplate, servicechecks etc.
 ### Check if it is Windows Server 2008/2012
 if ($osversion -like "*2008*") {
-    $hostdata = '{"object":{"hosttemplates":[{"ref":"/rest/config/hosttemplate/1","name":"OS - Windows Server 2008 WMI - Base"}],"flap_detection_enabled":"1","keywords":[],"check_period":{"ref":"/rest/config/timeperiod/1","name":"24x7"},"hostattributes":[{"arg1":null,"arg4":null,"value":"wincreds","arg3":null,"name":"WINCREDENTIALS","id":"1389"}],"notification_period":{"ref":"/rest/config/timeperiod/1","name":"24x7"},"notification_options":"u,d,r","tidy_ifdescr_level":"0","name":"' + $hostname + '","hostgroup":{"ref":"/rest/config/hostgroup/85","name":"AutoAdd"},"monitored_by":{"ref":"/rest/config/monitoringserver/1","name":"Master Monitoring Server"},"alias":"","parents":[],"uncommitted":"0","icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","servicechecks":[],"check_command":{"ref":"/rest/config/hostcheckcommand/15","name":"ping"},"check_attempts":"3","check_interval":"300","notification_interval":"3600","other_addresses":""}}'
+    $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2008 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
 }
 elseif ($osversion -like "*2012*") {
-    $hostdata = '{"object":{"hosttemplates":[{"ref":"/rest/config/hosttemplate/95","name":"OS - Windows Server 2012 WMI - Base"}],"flap_detection_enabled":"1","keywords":[],"check_period":{"ref":"/rest/config/timeperiod/1","name":"24x7"},"hostattributes":[{"arg1":null,"arg4":null,"value":"wincreds","arg3":null,"name":"WINCREDENTIALS","id":"1389"}],"notification_period":{"ref":"/rest/config/timeperiod/1","name":"24x7"},"notification_options":"u,d,r","tidy_ifdescr_level":"0","name":"' + $hostname + '","hostgroup":{"ref":"/rest/config/hostgroup/85","name":"AutoAdd"},"monitored_by":{"ref":"/rest/config/monitoringserver/1","name":"Master Monitoring Server"},"alias":"","parents":[],"uncommitted":"0","icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","servicechecks":[],"check_command":{"ref":"/rest/config/hostcheckcommand/15","name":"ping"},"check_attempts":"3","check_interval":"300","notification_interval":"3600","other_addresses":""}}'
+    $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2012 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
 }
 else {
     Write-Host "Unsupported OS! - Now exiting"
