@@ -1,29 +1,64 @@
-#################################################################################
-#
-# NAME: 	opsview-add-host.ps1
-#
-# COMMENT:  Script to add newly installed Windows server hosts to Opsview via REST-API
-#           Based on knowledge from http://damirkasper.blogspot.de/2011/04/opsview-and-adding-hosts-through-rest.html
-#
-#           Features:
-#           - check OS-version (Windows Server 2008/2012) depending on Host-Template
-#           - detect FQDN via .Net Class and use as Opsview-Host-Object-Name if not set via argument
-#           - detect IP if not set via argument
-#
-#           Parameters/Arguments:
-#           -server (IP or hostname of Opsview master server) | default: opsview.domain.de
-#           -user (Opsview username)                          | default: autoadduser
-#           -pass (Opsview password)                          | default: password
-#           -hostname (name of host object in Opsview)        | default: FQDN from DNS resolution via .Net class
-#           -hostip (IP address)                              | default: auto-detect via ipconfig
-#           -hostgroup (Opsview hostgroup)                    | default: AutoAdd
-#
-#           Example/Syntax:
-#           .\opsview-add-host.ps1 -server monitoring.steag.de -user autoadduser -pass 0psv13w! -hostname s01ts01.steag.de -hostip 10.74.27.192 -hostgroup AutoAdd
-#           "powershell.exe -noprofile -executionpolicy bypass -file C:\Temp\opsview-add-host.ps1"
-#
-#		
+<# 
+    .SYNOPSIS 
+        A script to add newly installed Windows server hosts to Opsview via its REST-API. 
+    .DESCRIPTION 
+        This script will add a newly installed Windows server host to Opsview via its REST-API. Communication from the Windows host to Opsview via port 443 (HTTPS) has to be allowed.
+        
+        The basic server metrics will be monitored via WMI.
+    .PARAMETER server 
+        Set Opsview hostname to register at. 
+         
+        The default value is "opsview.domain.de". 
+    .PARAMETER user
+        Set Opsview username to use for registration.
+        
+        The default value is "autoadduser".
+    .PARAMETER pass 
+        Set Opsview username's password to use for registration. 
+         
+        The default value is "password".
+    .PARAMETER hostname 
+        Set name of host object in Opsview. 
+         
+        The default value is the auto-detected FQDN from DNS resolution via a .Net class in the format HOSTNAME.DOMAIN.TLD.
+     .PARAMETER hostip 
+        Set IP address of host object in Opsview. 
+         
+        The default value is auto-detected via ipconfig command.
+     .PARAMETER hostgroup 
+        Set Opsview hostgroup where host shall be registered to. 
+         
+        The default value is "AutoAdd".
+    .EXAMPLE 
+        .\opsview-add-host.ps1 -server opsview.domain.de -user autoadduser -pass password -hostname winserver.domain.de -hostip 10.70.100.12 -hostgroup AutoAdd 
+         
+        Description 
+        ----------- 
+        This example shows how to run the script with all parameters set.
+    .EXAMPLE 
+        powershell.exe -noprofile -executionpolicy bypass -file C:\Temp\opsview-add-host.ps1 
+         
+        Description 
+        ----------- 
+        This example shows how to bypass PowerShell execution policy and run script with default parameters. 
+    .NOTES 
+        ScriptName : opsview-add-host.ps1 
+        Created By : Daniel Schindler 
+        Date Coded : 2016-11-29 
+  
+        Features:
+        - check OS-version (Windows Server 2008/2012) depending on Host-Template
+        - detect FQDN via .Net Class and use as Opsview-Host-Object-Name if not set via argument
+        - detect IP if not set via argument
+    .LINK 
+        http://damirkasper.blogspot.de/2011/04/opsview-and-adding-hosts-through-rest.html 
+    .LINK 
+        https://github.com/schindlerd/opsview-add-host 
+#> 
+#requires -version 2.0
+	
 # CHANGELOG:
+# 1.2  2016-12-06 - added Get-Help header information
 # 1.1  2016-12-03 - hostgroup parameter added
 #                 - hostdata more generalized
 # 1.0  2016-11-29 - initial version
@@ -94,8 +129,8 @@ elseif ($osversion -like "*2012*") {
     $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2012 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
 }
 else {
-    Write-Host "Unsupported OS! - Now exiting"
-    exit 1
+    Write-Host "Unsupported OS! - Now exiting..."
+    break
 }
 
 ### Use token and add host to Opsview
