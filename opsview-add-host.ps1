@@ -58,6 +58,7 @@
 #requires -version 2.0
 	
 # CHANGELOG:
+# 1.3  2016-12-16 - added Windows Server 2016 support
 # 1.2  2016-12-06 - added Get-Help header information
 # 1.1  2016-12-03 - hostgroup parameter added
 #                 - hostdata more generalized
@@ -121,12 +122,15 @@ $osversion = (Get-WmiObject Win32_OperatingSystem).Caption
 Write-Host $osversion
 
 ### JSON format hostdata like hosttemplate, servicechecks etc.
-### Check if it is Windows Server 2008/2012
+### Check if it is Windows Server 2008/2012/2016
 if ($osversion -like "*2008*") {
     $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2008 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
 }
 elseif ($osversion -like "*2012*") {
     $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2012 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
+}
+elseif ($osversion -like "*2016*") {
+    $hostdata = '{"object":{"hosttemplates":[{"name":"OS - Windows Server 2016 WMI - Base"}],"flap_detection_enabled":"1","check_period":{"name":"24x7"},"check_attempts":"3","check_interval":"300","hostattributes":[{"value":"wincreds","name":"WINCREDENTIALS"}],"notification_period":{"name":"24x7"},"notification_options":"u,d,r","name":"' + $hostname + '","hostgroup":{"name":"' + $hostgroup + '"},"monitored_by":{"name":"Master Monitoring Server"},"icon":{"name":"LOGO - Windows","path":"/images/logos/windows_small.png"},"retry_check_interval":"10","ip":"' + $hostip + '","check_command":{"name":"ping"}}}'
 }
 else {
     Write-Host "Unsupported OS! - Now exiting..."
