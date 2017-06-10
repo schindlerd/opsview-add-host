@@ -4,6 +4,7 @@
 # Small python script to add Oracle Linux host to Opsview.
 #
 # CHANGELOG:
+# 1.1  2017-06-10 - added local partition detection feature
 # 1.0  2017-05-02 - initial release (Happy Birthday Adam!)
 #
 ################################################################################
@@ -60,6 +61,10 @@ if None in [args.hostip]:
 else:
     opsview_hostip = args.hostip
 
+# Get local partitions for check_disk and preformat to set as hostattributes later
+partlist = commands.getoutput("df | awk '{print $1}' | grep -e ^/dev").split()
+partjson = [ {"name": "DISK", "value": partition} for partition in partlist ]
+
 # Connect to Opsview to retreive auth_token.
 opsview_cookies = urllib2.HTTPCookieProcessor()
 opsview_opener = urllib2.build_opener(opsview_cookies)
@@ -101,6 +106,7 @@ request = urllib2.Request(url, None, headers)
 
 # New host object info in JSON format.
 host = json.dumps({
+    "hostattributes" : partjson,
     "name": opsview_hostname,
     "ip": opsview_hostip,
     "hostgroup": {"name": opsview_hostgroup},
