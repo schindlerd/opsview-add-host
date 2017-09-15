@@ -4,6 +4,7 @@
 # Small python script to add Oracle Linux host to Opsview.
 #
 # CHANGELOG:
+# 1.2  2017-09-15 - ignore certificate validation (only use for internal opsview instance!)
 # 1.1  2017-06-10 - added local partition detection feature
 # 1.0  2017-05-02 - initial release (Happy Birthday Adam!)
 #
@@ -24,6 +25,7 @@
 ################################################################################
 
 import os
+import ssl
 import sys
 import json
 import socket
@@ -65,9 +67,20 @@ else:
 partlist = commands.getoutput("df | awk '{print $1}' | grep -e ^/dev").split()
 partjson = [ {"name": "DISK", "value": partition} for partition in partlist ]
 
+# Set SSL context to not verify opsview-web SSL certificate
+# (only for python >= 2.7 because older versions don't check by default)
+rec_version = (2,7)
+cur_version = sys.version_info
+
 # Connect to Opsview to retreive auth_token.
 opsview_cookies = urllib2.HTTPCookieProcessor()
-opsview_opener = urllib2.build_opener(opsview_cookies)
+if cur_version >= rec_version:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    opsview_opener = urllib2.build_opener(urllib2.HTTPSHandler(context=ctx), opsview_cookies)
+else:
+    opsview_opener = urllib2.build_opener(opsview_cookies)
 
 connect_opsview = opsview_opener.open(
   urllib2.Request(opsview_url + "rest/login",
