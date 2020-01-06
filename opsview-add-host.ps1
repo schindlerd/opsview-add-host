@@ -58,6 +58,7 @@
 #requires -version 2.0
 	
 # CHANGELOG:
+# 1.4  2020-01-06 - force TLS 1.1/1.2 version as SecurityProtocol for web request method
 # 1.3  2016-12-16 - added Windows Server 2016 support
 # 1.2  2016-12-06 - added Get-Help header information
 # 1.1  2016-12-03 - hostgroup parameter added
@@ -94,6 +95,11 @@ param (
 ### URLs for authentication and config
 $urlauth = "https://$server/rest/login"
 $urlconfig = "https://$server/rest/config/host"
+
+### .NET version > 4.5 uses SSLv3 and TLS 1.0 by default but lowest TLS version is 1.1 for Opsview-Web
+### Reference: https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
+$TLSProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+[System.Net.ServicePointManager]::SecurityProtocol = $TLSProtocols
 
 ### JSON formated body string with credentials
 $creds = '{"username":"' + $user + '","password":"' + $pass + '"}'
